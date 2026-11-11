@@ -171,12 +171,35 @@ def brow_shift(rgb: np.ndarray, lm, inner_up: float, together: float) -> np.ndar
         # inner brow is toward the nose
         cx = ex + sign * eye_d * 0.12
         cy = ey - eye_d * 0.28
-        movers.append((cx, cy, sign * together * 4, -inner_up * 10, eye_d * 0.35))
+        movers.append((cx, cy, sign * together * 2, -inner_up * 5, eye_d * 0.42))
         # outer brow slightly opposite
         cx2 = ex - sign * eye_d * 0.18
         cy2 = ey - eye_d * 0.28
-        movers.append((cx2, cy2, 0, inner_up * 4, eye_d * 0.28))
+        movers.append((cx2, cy2, 0, inner_up * 2, eye_d * 0.35))
     return inverse_warp(rgb, movers)
+
+
+GRADES = {
+    # (r, g, b multipliers, brightness) — gentle colour mood, no geometry change
+    "happy": (1.04, 1.01, 0.97, 1.03),
+    "laughing": (1.05, 1.02, 0.96, 1.05),
+    "excited": (1.05, 1.02, 0.96, 1.05),
+    "sad": (0.96, 0.99, 1.05, 0.95),
+    "worried": (0.98, 0.99, 1.03, 0.97),
+    "angry": (1.05, 0.97, 0.95, 0.98),
+    "embarrassed": (1.03, 0.99, 0.99, 1.01),
+    "surprised": (1.0, 1.0, 1.01, 1.04),
+    "thoughtful": (0.99, 0.99, 1.01, 0.98),
+}
+
+
+def grade(im: Image.Image, kind: str) -> Image.Image:
+    g = GRADES.get(kind)
+    if not g:
+        return im
+    a = np.asarray(im).astype(np.float32)
+    a *= np.array(g[:3], np.float32) * g[3]
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
 
 
 def apply(im: Image.Image, lm, kind: str) -> Image.Image:
@@ -190,19 +213,19 @@ def apply(im: Image.Image, lm, kind: str) -> Image.Image:
 
     def smile(amount, cheek=1.0):
         movers = [
-            (rx, ry, 0, -amount * 14, eye_d * 0.45),
-            (lx, ly, 0, -amount * 14, eye_d * 0.45),
-            (mx, my + 6, 0, amount * 4, eye_d * 0.3),
-            (reye[0] - 10, reye[1] + eye_d * 0.4, 0, -amount * 5 * cheek, eye_d * 0.4),
-            (leye[0] + 10, leye[1] + eye_d * 0.4, 0, -amount * 5 * cheek, eye_d * 0.4),
+            (rx, ry, 0, -amount * 7, eye_d * 0.55),
+            (lx, ly, 0, -amount * 7, eye_d * 0.55),
+            (mx, my + 6, 0, amount * 2, eye_d * 0.35),
+            (reye[0] - 10, reye[1] + eye_d * 0.4, 0, -amount * 3 * cheek, eye_d * 0.5),
+            (leye[0] + 10, leye[1] + eye_d * 0.4, 0, -amount * 3 * cheek, eye_d * 0.5),
         ]
         return inverse_warp(rgb, movers)
 
     def frown(amount):
         movers = [
-            (rx, ry, 2, amount * 10, eye_d * 0.4),
-            (lx, ly, -2, amount * 10, eye_d * 0.4),
-            (mx, my, 0, amount * 4, eye_d * 0.25),
+            (rx, ry, 1, amount * 5, eye_d * 0.5),
+            (lx, ly, -1, amount * 5, eye_d * 0.5),
+            (mx, my, 0, amount * 2, eye_d * 0.35),
         ]
         return inverse_warp(rgb, movers)
 
@@ -231,20 +254,16 @@ def apply(im: Image.Image, lm, kind: str) -> Image.Image:
         out = brow_shift(out, lm, inner_up=-0.9, together=0.8)
     elif kind == "surprised":
         movers = [
-            (reye[0], reye[1], 0, -6, eye_d * 0.35),
-            (leye[0], leye[1], 0, -6, eye_d * 0.35),
-            ((reye[0] + leye[0]) / 2, (reye[1] + leye[1]) / 2 - eye_d * 0.3, 0, -12, eye_d * 0.5),
-            (mx, my, 0, 8, eye_d * 0.4),
+            ((reye[0] + leye[0]) / 2, (reye[1] + leye[1]) / 2 - eye_d * 0.35, 0, -5, eye_d * 0.6),
+            (mx, my + 4, 0, 3, eye_d * 0.45),
         ]
         out = inverse_warp(rgb, movers)
         open_m = 0.0
         teeth = False
     elif kind == "thoughtful":
         movers = [
-            (mx, my, 3, 0, eye_d * 0.3),
-            (lx, ly, 2, 2, eye_d * 0.25),
-            (leye[0], leye[1], 5, -2, eye_d * 0.25),
-            (reye[0], reye[1], 5, -2, eye_d * 0.25),
+            (mx, my, 2, 0, eye_d * 0.4),
+            (lx, ly, 1, 1, eye_d * 0.35),
         ]
         out = inverse_warp(rgb, movers)
         out = brow_shift(out, lm, inner_up=0.35, together=0.0)
@@ -252,19 +271,11 @@ def apply(im: Image.Image, lm, kind: str) -> Image.Image:
         out = smile(0.4, cheek=0.6)
         blush = 0.7
         movers = [
-            (reye[0], reye[1], 4, 6, eye_d * 0.3),
-            (leye[0], leye[1], 4, 6, eye_d * 0.3),
         ]
-        out = inverse_warp(out, movers)
     elif kind == "excited":
         out = smile(1.05, cheek=1.15)
         blush = 0.3
         # slightly wider eyes (pull lids by shifting around eyes up)
-        movers = [
-            (reye[0], reye[1] - 8, 0, -5, eye_d * 0.3),
-            (leye[0], leye[1] - 8, 0, -5, eye_d * 0.3),
-        ]
-        out = inverse_warp(out, movers)
         open_m = 0.0
         teeth = False
     elif kind == "worried":
@@ -278,7 +289,7 @@ def apply(im: Image.Image, lm, kind: str) -> Image.Image:
 
     im2 = Image.fromarray(out)
     im2 = overlay_blush(im2, lm, blush)
-    im2 = draw_open_mouth(im2, lm, open_m, teeth)
+    im2 = grade(im2, kind)
     if blink:
         im2 = draw_blink(im2, lm, skin)
     return im2
@@ -295,7 +306,6 @@ KINDS = [
     "embarrassed",
     "excited",
     "worried",
-    "blink",
 ]
 
 

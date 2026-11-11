@@ -43,7 +43,8 @@ class ChatTurn {
 
 class AiClient {
   static const primary = 'https://text.pollinations.ai/openai';
-  static const fallbackOpenAi = 'https://text.pollinations.ai/v1/chat/completions';
+  static const fallbackOpenAi =
+      'https://text.pollinations.ai/v1/chat/completions';
   static const fallbackPlain = 'https://text.pollinations.ai/';
   static const getBase = 'https://text.pollinations.ai/';
   static const minGap = Duration(seconds: 30);
@@ -55,7 +56,7 @@ class AiClient {
   DateTime? _blockedUntil;
 
   AiClient({http.Client? httpClient, this.timeout = defaultTimeout})
-      : _http = httpClient ?? http.Client();
+    : _http = httpClient ?? http.Client();
 
   Duration cooldownRemaining({DateTime? now}) {
     final n = now ?? DateTime.now();
@@ -78,8 +79,18 @@ class AiClient {
   }) async {
     Object? lastError;
     final endpoints = [
-      () => _postOpenAi(Uri.parse(primary), messages, jsonMode: jsonMode, seed: seed),
-      () => _postOpenAi(Uri.parse(fallbackOpenAi), messages, jsonMode: jsonMode, seed: seed),
+      () => _postOpenAi(
+        Uri.parse(primary),
+        messages,
+        jsonMode: jsonMode,
+        seed: seed,
+      ),
+      () => _postOpenAi(
+        Uri.parse(fallbackOpenAi),
+        messages,
+        jsonMode: jsonMode,
+        seed: seed,
+      ),
       () => _postPlain(messages, seed: seed),
       () => _getPrompt(messages, seed: seed),
     ];
@@ -94,7 +105,10 @@ class AiClient {
         if (e.offline) rethrow;
         if (e.rateLimited && i == endpoints.length - 1) rethrow;
         if (e.rateLimited) continue;
-        if (e.status != null && e.status! >= 400 && e.status! < 500 && e.status != 402) {
+        if (e.status != null &&
+            e.status! >= 400 &&
+            e.status! < 500 &&
+            e.status != 402) {
           // try the next fallback anyway for 404-style misses
           continue;
         }
@@ -120,7 +134,9 @@ class AiClient {
       }
     }
     if (lastError is AiException) throw lastError;
-    throw AiException(lastError?.toString() ?? 'The chat service is unavailable.');
+    throw AiException(
+      lastError?.toString() ?? 'The chat service is unavailable.',
+    );
   }
 
   Future<String> _postOpenAi(
@@ -216,7 +232,9 @@ class AiClient {
     } finally {
       _lastRequestAt = DateTime.now();
     }
-    if (res.statusCode == 402 || res.statusCode == 429 || res.statusCode == 503) {
+    if (res.statusCode == 402 ||
+        res.statusCode == 429 ||
+        res.statusCode == 503) {
       final ra = _retryAfter(res) ?? minGap;
       _blockedUntil = DateTime.now().add(ra);
       throw AiException(
@@ -238,7 +256,9 @@ class AiClient {
     }
     try {
       final decoded = jsonDecode(body);
-      if (decoded is Map && decoded['choices'] is List && (decoded['choices'] as List).isNotEmpty) {
+      if (decoded is Map &&
+          decoded['choices'] is List &&
+          (decoded['choices'] as List).isNotEmpty) {
         final choice = decoded['choices'][0];
         if (choice is Map) {
           final msg = choice['message'];
@@ -264,16 +284,19 @@ class AiClient {
       final decoded = jsonDecode(t);
       if (decoded is Map) {
         for (final key in ['text', 'content', 'reply', 'message', 'response']) {
-          if (decoded[key] is String && (decoded[key] as String).trim().isNotEmpty) {
+          if (decoded[key] is String &&
+              (decoded[key] as String).trim().isNotEmpty) {
             // If it looks like our emotion JSON already, keep the whole object.
             if (decoded.containsKey('emotion') && decoded.containsKey('text')) {
               return t;
             }
             // Avoid unwrapping OpenAI-style {message: {content}}
-            if (decoded[key] is String && key != 'message') return decoded[key] as String;
+            if (decoded[key] is String && key != 'message')
+              return decoded[key] as String;
           }
         }
-        if (decoded['message'] is Map && (decoded['message'] as Map)['content'] != null) {
+        if (decoded['message'] is Map &&
+            (decoded['message'] as Map)['content'] != null) {
           return (decoded['message'] as Map)['content'].toString();
         }
         if (decoded.containsKey('emotion')) return t;
@@ -283,14 +306,15 @@ class AiClient {
   }
 
   AiException _statusException(http.Response res) => AiException(
-        'The chat service returned HTTP ${res.statusCode}.',
-        status: res.statusCode,
-      );
+    'The chat service returned HTTP ${res.statusCode}.',
+    status: res.statusCode,
+  );
 
   Duration? _retryAfter(http.Response res) {
     final raw = res.headers['retry-after'];
     if (raw == null) return null;
-    final secs = int.tryParse(raw.trim()) ?? double.tryParse(raw.trim())?.ceil();
+    final secs =
+        int.tryParse(raw.trim()) ?? double.tryParse(raw.trim())?.ceil();
     if (secs != null && secs >= 0) return Duration(seconds: secs);
     final when = DateTime.tryParse(raw);
     if (when != null) {

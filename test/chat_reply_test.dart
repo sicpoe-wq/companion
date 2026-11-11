@@ -49,10 +49,10 @@ Sure, here you go:
       expect(EmotionCodec.parse('Thrilled!!'), Emotion.excited);
     });
 
-    test('plain prose falls back and infers', () {
+    test('plain prose falls back to neutral', () {
       final r = ChatReply.parse('Whoa, no way — you actually did that?');
       expect(r.parsedJson, isFalse);
-      expect(r.emotion, Emotion.surprised);
+      expect(r.emotion, Emotion.neutral);
       expect(r.text, contains('you actually did that'));
     });
 

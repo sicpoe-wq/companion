@@ -4,17 +4,14 @@ import 'package:companion/services/app_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  ChatMessage u(String t, int i) => ChatMessage(
-        role: ChatRole.user,
-        text: t,
-        at: DateTime(2026, 1, 1, 0, i),
-      );
+  ChatMessage u(String t, int i) =>
+      ChatMessage(role: ChatRole.user, text: t, at: DateTime(2026, 1, 1, 0, i));
   ChatMessage a(String t, int i) => ChatMessage(
-        role: ChatRole.assistant,
-        text: t,
-        emotion: Emotion.happy,
-        at: DateTime(2026, 1, 1, 0, i),
-      );
+    role: ChatRole.assistant,
+    text: t,
+    emotion: Emotion.happy,
+    at: DateTime(2026, 1, 1, 0, i),
+  );
 
   test('keeps short histories intact', () {
     final msgs = [u('hi', 1), a('hey', 2)];
@@ -40,9 +37,7 @@ void main() {
 
   test('trims a long existing summary', () {
     final long = 'Earlier notes. ' * 400;
-    final msgs = [
-      for (var i = 0; i < 10; i++) u('x$i', i),
-    ];
+    final msgs = [for (var i = 0; i < 10; i++) u('x$i', i)];
     final (sum, kept) = compactMemory(long, msgs, keep: 4);
     expect(kept.length, 4);
     expect(sum.length, lessThanOrEqualTo(AppStore.maxSummaryChars));

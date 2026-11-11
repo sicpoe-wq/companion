@@ -96,44 +96,61 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             SafeArea(
-              child: Column(
-                children: [
-                  _topBar(character.name),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    height: compact ? 140 : 230,
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: AvatarStage(
-                      character: character,
-                      style: c.style,
-                      emotion: c.displayEmotion,
-                      talking: c.talking,
-                      ring: ring,
-                    ),
-                  ),
-                  _emotionChip(c.displayEmotion, c.scenario.name, ring),
-                  if (c.error != null) _errorBar(),
-                  if (c.pendingSuggestion != null) _suggestionBar(),
-                  Expanded(
-                    child: ListView.builder(
-                      controller: _scroll,
-                      padding: const EdgeInsets.only(top: 8, bottom: 8),
-                      itemCount: c.messages.length + (c.busy ? 1 : 0),
-                      itemBuilder: (context, i) {
-                        if (i == c.messages.length) {
-                          return TypingBubble(accent: character.accent, preview: c.typingBuffer);
-                        }
-                        return ChatBubble(message: c.messages[i], accent: character.accent);
-                      },
-                    ),
-                  ),
-                  Composer(
-                    controller: _text,
-                    onSend: _send,
-                    enabled: !c.busy,
-                    accent: character.accent,
-                  ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, box) {
+                  // Avatar is a true circle sized from the available height.
+                  final h = box.maxHeight;
+                  final side = compact
+                      ? (h * 0.22).clamp(72.0, 150.0)
+                      : (h * 0.30).clamp(110.0, 300.0).toDouble();
+                  return Column(
+                    children: [
+                      _topBar(character.name),
+                      const SizedBox(height: 8),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        height: side.toDouble(),
+                        width: side.toDouble(),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: AvatarStage(
+                          character: character,
+                          style: c.style,
+                          emotion: c.displayEmotion,
+                          talking: c.talking,
+                          ring: ring,
+                        ),
+                      ),
+                      _emotionChip(c.displayEmotion, c.scenario.name, ring),
+                      if (c.error != null) _errorBar(),
+                      if (c.pendingSuggestion != null) _suggestionBar(),
+                      Expanded(
+                        child: ListView.builder(
+                          controller: _scroll,
+                          padding: const EdgeInsets.only(top: 8, bottom: 8),
+                          itemCount: c.messages.length + (c.busy ? 1 : 0),
+                          itemBuilder: (context, i) {
+                            if (i == c.messages.length) {
+                              return TypingBubble(
+                                accent: character.accent,
+                                preview: c.typingBuffer,
+                              );
+                            }
+                            return ChatBubble(
+                              message: c.messages[i],
+                              accent: character.accent,
+                            );
+                          },
+                        ),
+                      ),
+                      Composer(
+                        controller: _text,
+                        onSend: _send,
+                        enabled: !c.busy,
+                        accent: character.accent,
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -143,8 +160,16 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _topBar(String name) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
+    final tts = c.state.ttsEnabled;
+    return Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: AppColors.bg.withValues(alpha: 0.55),
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+      ),
       child: Row(
         children: [
           IconButton(
@@ -158,34 +183,46 @@ class _ChatScreenState extends State<ChatScreen> {
             },
             icon: const Icon(Icons.people_alt_rounded, color: AppColors.cream),
           ),
+          const SizedBox(width: 2),
           Expanded(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: AppColors.cream,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
+                    height: 1.1,
                   ),
                 ),
                 Text(
                   c.scenario.name,
-                  style: const TextStyle(color: AppColors.creamMuted, fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.creamMuted,
+                    fontSize: 12,
+                    height: 1.2,
+                  ),
                 ),
               ],
             ),
           ),
           IconButton(
-            tooltip: c.state.ttsEnabled ? 'Voice on' : 'Voice off',
-            onPressed: () => c.setTts(!c.state.ttsEnabled),
+            tooltip: tts ? 'Voice on' : 'Voice off',
+            onPressed: () => c.setTts(!tts),
             icon: Icon(
-              c.state.ttsEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-              color: c.state.ttsEnabled ? c.character.accent : AppColors.cream,
+              tts ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+              color: tts ? c.character.accent : AppColors.cream,
             ),
           ),
           IconButton(
-            tooltip: 'Do something',
+            tooltip: 'Do something together',
             onPressed: _activities,
             icon: const Icon(Icons.explore_rounded, color: AppColors.cream),
           ),
@@ -193,7 +230,9 @@ class _ChatScreenState extends State<ChatScreen> {
             tooltip: 'Settings',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => SettingsScreen(controller: c)),
+                MaterialPageRoute(
+                  builder: (_) => SettingsScreen(controller: c),
+                ),
               );
             },
             icon: const Icon(Icons.settings_rounded, color: AppColors.cream),
@@ -214,8 +253,12 @@ class _ChatScreenState extends State<ChatScreen> {
           border: Border.all(color: ring.withValues(alpha: 0.5)),
         ),
         child: Text(
-          '${e.label}  ·  $scene',
-          style: const TextStyle(color: AppColors.cream, fontSize: 12, fontWeight: FontWeight.w500),
+          e.label,
+          style: const TextStyle(
+            color: AppColors.cream,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );
@@ -238,12 +281,22 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: Text(
               c.error!,
-              style: const TextStyle(color: AppColors.cream, fontSize: 13.5, height: 1.3),
+              style: const TextStyle(
+                color: AppColors.cream,
+                fontSize: 13.5,
+                height: 1.3,
+              ),
             ),
           ),
           TextButton(
             onPressed: c.retry,
-            child: const Text('Retry', style: TextStyle(color: AppColors.cream, fontWeight: FontWeight.w700)),
+            child: const Text(
+              'Retry',
+              style: TextStyle(
+                color: AppColors.cream,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
       ),
@@ -276,7 +329,10 @@ class _ChatScreenState extends State<ChatScreen> {
               style: const TextStyle(color: AppColors.cream, fontSize: 13.5),
             ),
           ),
-          TextButton(onPressed: c.dismissSuggestion, child: const Text('Not now')),
+          TextButton(
+            onPressed: c.dismissSuggestion,
+            child: const Text('Not now'),
+          ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: c.character.accent,

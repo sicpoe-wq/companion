@@ -60,7 +60,7 @@ class CartoonFacePainter extends CustomPainter {
     canvas.save();
     canvas.translate(cx + headSway * headR * 0.04, cy + breath * headR * 0.015);
     canvas.rotate(headSway * 0.045);
-    canvas.scale(1 + breath * 0.012, 1 + breath * 0.02);
+    canvas.scale(1 + breath * 0.014); // uniform: never stretch the face
 
     _shoulders(canvas, headR);
     _neck(canvas, headR);
@@ -123,7 +123,11 @@ class CartoonFacePainter extends CustomPainter {
     );
     // neck shadow
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(0, r * 1.08), width: r * 0.42, height: r * 0.18),
+      Rect.fromCenter(
+        center: Offset(0, r * 1.08),
+        width: r * 0.42,
+        height: r * 0.18,
+      ),
       Paint()..color = palette.skinShadow.withValues(alpha: 0.22),
     );
   }
@@ -135,7 +139,14 @@ class CartoonFacePainter extends CustomPainter {
       ..moveTo(0, -r * 1.05)
       ..cubicTo(r * 0.78, -r * 1.05, r * 0.98, -r * 0.35, r * 0.92, r * 0.15)
       ..cubicTo(r * 0.86, r * 0.62, r * jw * 0.9, r * 0.88, 0, r * ch)
-      ..cubicTo(-r * jw * 0.9, r * 0.88, -r * 0.86, r * 0.62, -r * 0.92, r * 0.15)
+      ..cubicTo(
+        -r * jw * 0.9,
+        r * 0.88,
+        -r * 0.86,
+        r * 0.62,
+        -r * 0.92,
+        r * 0.15,
+      )
       ..cubicTo(-r * 0.98, -r * 0.35, -r * 0.78, -r * 1.05, 0, -r * 1.05)
       ..close();
     canvas.drawPath(
@@ -150,7 +161,11 @@ class CartoonFacePainter extends CustomPainter {
     );
     // soft highlight
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(-r * 0.28, -r * 0.35), width: r * 0.55, height: r * 0.35),
+      Rect.fromCenter(
+        center: Offset(-r * 0.28, -r * 0.35),
+        width: r * 0.55,
+        height: r * 0.35,
+      ),
       Paint()..color = Colors.white.withValues(alpha: 0.14),
     );
   }
@@ -160,7 +175,10 @@ class CartoonFacePainter extends CustomPainter {
     final shadow = Paint()..color = palette.skinShadow.withValues(alpha: 0.35);
     for (final sign in [-1.0, 1.0]) {
       final c = Offset(sign * r * 0.95, r * 0.05);
-      canvas.drawOval(Rect.fromCenter(center: c, width: r * 0.28, height: r * 0.42), paint);
+      canvas.drawOval(
+        Rect.fromCenter(center: c, width: r * 0.28, height: r * 0.42),
+        paint,
+      );
       canvas.drawOval(
         Rect.fromCenter(center: c, width: r * 0.14, height: r * 0.22),
         shadow,
@@ -216,7 +234,13 @@ class CartoonFacePainter extends CustomPainter {
         );
       } else {
         final socket = Path()
-          ..addOval(Rect.fromCenter(center: Offset.zero, width: eyeW * 1.05, height: visH * 1.15));
+          ..addOval(
+            Rect.fromCenter(
+              center: Offset.zero,
+              width: eyeW * 1.05,
+              height: visH * 1.15,
+            ),
+          );
         canvas.save();
         canvas.clipPath(socket);
         canvas.drawPath(socket, Paint()..color = const Color(0xFFF8F6F2));
@@ -232,7 +256,11 @@ class CartoonFacePainter extends CustomPainter {
               center: const Alignment(-0.3, -0.3),
             ).createShader(Rect.fromCircle(center: look, radius: irisR)),
         );
-        canvas.drawCircle(look, irisR * 0.45, Paint()..color = const Color(0xFF1A100C));
+        canvas.drawCircle(
+          look,
+          irisR * 0.45,
+          Paint()..color = const Color(0xFF1A100C),
+        );
         // highlights
         canvas.drawCircle(
           look + Offset(-irisR * 0.28, -irisR * 0.3),
@@ -247,11 +275,19 @@ class CartoonFacePainter extends CustomPainter {
         canvas.restore();
 
         // upper lid + squint
-        final lidClose = (1 - open.clamp(0.0, 1.0)) + pose.lidDrop + pose.squint * 0.35;
+        final lidClose =
+            (1 - open.clamp(0.0, 1.0)) + pose.lidDrop + pose.squint * 0.35;
         if (lidClose > 0) {
           final lidH = visH * lidClose.clamp(0.0, 0.85);
           final lid = Path()
-            ..addRect(Rect.fromLTWH(-eyeW * 0.6, -visH * 0.65, eyeW * 1.2, lidH + visH * 0.15));
+            ..addRect(
+              Rect.fromLTWH(
+                -eyeW * 0.6,
+                -visH * 0.65,
+                eyeW * 1.2,
+                lidH + visH * 0.15,
+              ),
+            );
           canvas.save();
           canvas.clipPath(socket);
           canvas.drawPath(lid, Paint()..color = palette.skin);
@@ -285,7 +321,10 @@ class CartoonFacePainter extends CustomPainter {
             final x = t * eyeW;
             canvas.drawLine(
               Offset(x, -visH * 0.42),
-              Offset(x + (sign > 0 ? 1 : -1) * r * 0.02, -visH * 0.42 - r * 0.07),
+              Offset(
+                x + (sign > 0 ? 1 : -1) * r * 0.02,
+                -visH * 0.42 - r * 0.07,
+              ),
               lash,
             );
           }
@@ -306,7 +345,10 @@ class CartoonFacePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     for (final sign in [-1.0, 1.0]) {
       final together = pose.browInnerTogether * r * 0.08;
-      final inner = Offset(sign * (gap - r * 0.22 + together), y0 - sign * 0 * r + -sign * 0);
+      final inner = Offset(
+        sign * (gap - r * 0.22 + together),
+        y0 - sign * 0 * r + -sign * 0,
+      );
       // angle: positive = inner up
       final innerY = y0 - pose.browAngle * r * 0.10;
       final outerY = y0 + pose.browAngle * r * 0.08;
@@ -380,7 +422,12 @@ class CartoonFacePainter extends CustomPainter {
       canvas.drawPath(
         Path()
           ..moveTo(-w * 0.7, y - r * 0.01)
-          ..quadraticBezierTo(0, y - r * 0.02 + curve * 0.3, w * 0.7, y - r * 0.01),
+          ..quadraticBezierTo(
+            0,
+            y - r * 0.02 + curve * 0.3,
+            w * 0.7,
+            y - r * 0.01,
+          ),
         Paint()
           ..color = lips.withValues(alpha: 0.9)
           ..style = PaintingStyle.stroke
@@ -445,7 +492,14 @@ class CartoonFacePainter extends CustomPainter {
       // One continuous mass behind the head, down past the shoulders.
       final mass = Path()
         ..moveTo(-r * 0.15, -r * 1.15)
-        ..cubicTo(-r * 1.05, -r * 1.25, -r * 1.45, -r * 0.15, -r * 1.28, r * 2.05)
+        ..cubicTo(
+          -r * 1.05,
+          -r * 1.25,
+          -r * 1.45,
+          -r * 0.15,
+          -r * 1.28,
+          r * 2.05,
+        )
         ..cubicTo(-r * 1.05, r * 2.2, -r * 0.7, r * 1.85, -r * 0.42, r * 1.15)
         ..lineTo(-r * 0.55, r * 0.2)
         ..lineTo(r * 0.55, r * 0.2)
@@ -469,11 +523,13 @@ class CartoonFacePainter extends CustomPainter {
   void _hairFront(Canvas canvas, double r) {
     final fill = Paint()..color = palette.hair;
     final dark = Paint()..color = palette.hairDark;
+    // Soft, blurred sheen (a hard stroke read as a crack in the hair).
     final light = Paint()
-      ..color = palette.hairLight
+      ..color = palette.hairLight.withValues(alpha: 0.35)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = r * 0.028
-      ..strokeCap = StrokeCap.round;
+      ..strokeWidth = r * 0.09
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.05);
     if (palette.hairStyle == HairStyle.longWavy) {
       // Full cap over the skull so no scalp shows, with a thin side part.
       final cap = Path()
@@ -489,13 +545,27 @@ class CartoonFacePainter extends CustomPainter {
         ..moveTo(-r * 0.72, -r * 0.55)
         ..cubicTo(-r * 0.15, -r * 1.08, r * 0.55, -r * 1.0, r * 0.88, -r * 0.28)
         ..cubicTo(r * 0.5, -r * 0.42, r * 0.15, -r * 0.22, -r * 0.05, -r * 0.48)
-        ..cubicTo(-r * 0.28, -r * 0.72, -r * 0.52, -r * 0.62, -r * 0.72, -r * 0.55)
+        ..cubicTo(
+          -r * 0.28,
+          -r * 0.72,
+          -r * 0.52,
+          -r * 0.62,
+          -r * 0.72,
+          -r * 0.55,
+        )
         ..close();
       canvas.drawPath(bangs, fill);
       canvas.drawPath(
         Path()
           ..moveTo(-r * 0.35, -r * 0.95)
-          ..cubicTo(-r * 0.05, -r * 1.05, r * 0.25, -r * 0.9, r * 0.5, -r * 0.6),
+          ..cubicTo(
+            -r * 0.05,
+            -r * 1.05,
+            r * 0.25,
+            -r * 0.9,
+            r * 0.5,
+            -r * 0.6,
+          ),
         light,
       );
     } else {
@@ -509,8 +579,22 @@ class CartoonFacePainter extends CustomPainter {
       for (final sign in [-1.0, 1.0]) {
         final sb = Path()
           ..moveTo(sign * r * 0.92, -r * 0.02)
-          ..cubicTo(sign * r * 1.05, r * 0.18, sign * r * 0.95, r * 0.42, sign * r * 0.8, r * 0.52)
-          ..cubicTo(sign * r * 0.84, r * 0.22, sign * r * 0.84, r * 0.06, sign * r * 0.92, -r * 0.02)
+          ..cubicTo(
+            sign * r * 1.05,
+            r * 0.18,
+            sign * r * 0.95,
+            r * 0.42,
+            sign * r * 0.8,
+            r * 0.52,
+          )
+          ..cubicTo(
+            sign * r * 0.84,
+            r * 0.22,
+            sign * r * 0.84,
+            r * 0.06,
+            sign * r * 0.92,
+            -r * 0.02,
+          )
           ..close();
         canvas.drawPath(sb, dark);
       }

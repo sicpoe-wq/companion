@@ -7,6 +7,7 @@ class Scenario {
   final String prompt;
   final IconData icon;
   final SceneColors colors;
+
   /// Opening line the character says when this scene starts mid-chat.
   final String arrivalLine;
 

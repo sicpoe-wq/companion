@@ -66,7 +66,8 @@ const twentyQuestions = Scenario(
       'OR guess what they are thinking of. Ask or answer one clear question at a time. Keep a light tally of questions used. '
       'When the game ends, celebrate or shrug it off, and offer a rematch or a different activity.',
   icon: Icons.help_center_rounded,
-  arrivalLine: "Okay, 20 questions. Want me to think of something, or are you up?",
+  arrivalLine:
+      "Okay, 20 questions. Want me to think of something, or are you up?",
   colors: SceneColors(
     top: Color(0xFF3A2A58),
     bottom: Color(0xFF14101C),
@@ -104,7 +105,8 @@ const story = Scenario(
       'Weave their choices in. Keep it fun, PG, and collaborative — they are a partner, not just an audience. '
       'If they want to change the setting, follow them.',
   icon: Icons.auto_stories_rounded,
-  arrivalLine: "Alright — new story. Want fantasy, mystery, or should I surprise you?",
+  arrivalLine:
+      "Alright — new story. Want fantasy, mystery, or should I surprise you?",
   colors: SceneColors(
     top: Color(0xFF1A1640),
     bottom: Color(0xFF0A0818),
@@ -116,10 +118,8 @@ const story = Scenario(
 
 const allScenarios = [hangout, walk, cafe, twentyQuestions, trivia, story];
 
-Scenario scenarioById(String? id) => allScenarios.firstWhere(
-      (s) => s.id == id,
-      orElse: () => hangout,
-    );
+Scenario scenarioById(String? id) =>
+    allScenarios.firstWhere((s) => s.id == id, orElse: () => hangout);
 
 /// Map a free-form model `action` field onto a scenario, if it clearly asks for one.
 Scenario? scenarioFromAction(String? action) {

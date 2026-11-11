@@ -4,15 +4,15 @@ enum AvatarStyle { cartoon, realistic }
 
 extension AvatarStyleLabel on AvatarStyle {
   String get label => switch (this) {
-        AvatarStyle.cartoon => 'Cartoon',
-        AvatarStyle.realistic => 'Semi-realistic',
-      };
+    AvatarStyle.cartoon => 'Cartoon',
+    AvatarStyle.realistic => 'Semi-realistic',
+  };
 
   String get blurb => switch (this) {
-        AvatarStyle.cartoon => 'A drawn, animated face with lively expressions.',
-        AvatarStyle.realistic =>
-          'A painted portrait of the same person, crossfaded between expressions.',
-      };
+    AvatarStyle.cartoon => 'A drawn, animated face with lively expressions.',
+    AvatarStyle.realistic =>
+      'A painted portrait of the same person, crossfaded between expressions.',
+  };
 }
 
 class Character {
@@ -23,6 +23,7 @@ class Character {
   final String bio;
   final String personality;
   final String greeting;
+
   /// Hint for Android TTS (name + short voice description).
   final String voiceHint;
   final bool feminineVoice;

@@ -40,7 +40,8 @@ class TtsService {
         Map? match;
         for (final v in voices) {
           if (v is! Map) continue;
-          final gender = '${v['gender'] ?? v['genderName'] ?? ''}'.toLowerCase();
+          final gender = '${v['gender'] ?? v['genderName'] ?? ''}'
+              .toLowerCase();
           final locale = '${v['locale'] ?? v['localeId'] ?? ''}'.toLowerCase();
           final name = '${v['name'] ?? ''}'.toLowerCase();
           final en = locale.startsWith('en') || name.contains('en-');

@@ -3,17 +3,17 @@
 An Android app where you chat with an AI character who **looks like a person** and **visually expresses emotion** while you talk. You can hang out, go for a walk, sit in a cafe, play 20 Questions or trivia, or make up a story together.
 
 <p>
-  <img src="screenshots/chat_cartoon_happy.png" width="240" alt="Cartoon Aria, happy">
-  <img src="screenshots/chat_cartoon_laughing.png" width="240" alt="Cartoon Aria, laughing">
-  <img src="screenshots/chat_realistic_thoughtful.png" width="240" alt="Semi-realistic Julian, thoughtful">
-  <img src="screenshots/chat_realistic_surprised.png" width="240" alt="Semi-realistic Aria, surprised">
+  <img src="screenshots/393x852/chat_realistic_happy.png" width="240" alt="Semi-realistic Aria, happy">
+  <img src="screenshots/393x852/chat_realistic_surprised.png" width="240" alt="Semi-realistic Aria, surprised">
+  <img src="screenshots/393x852/chat_realistic_julian_thoughtful.png" width="240" alt="Semi-realistic Julian, thoughtful">
+  <img src="screenshots/393x852/chat_cartoon_laughing.png" width="240" alt="Cartoon Aria, laughing">
 </p>
 
 ## Features
 
 - **Two looks**, chosen when you start (and changeable in Settings):
   - **Cartoon** — a drawn, animated face (blinks, breathes, talks as the reply types out, and transitions between expressions).
-  - **Semi-realistic** — painted portraits of the same person, crossfaded between expressions, with a blink and a little idle motion.
+  - **Semi-realistic** — painted portraits of the same person in a round frame, softly crossfaded between subtle expressions, with gentle idle motion (never stretched or warped).
 - **Two companions:** Aria (warm, curious, a little teasing) and Julian (calm, witty, a good listener). Each one works in both looks.
 - **Ten expressions:** neutral, happy, laughing, sad, angry/annoyed, surprised, thoughtful, embarrassed, excited, worried. The model tags each reply with an emotion that drives the face.
 - **Do things together:** hang out, go for a walk, cafe, 20 Questions, trivia, or a story adventure. The background changes with the scene, and they can suggest an activity too.

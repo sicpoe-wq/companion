@@ -13,17 +13,17 @@ enum Emotion {
 
 extension EmotionLabel on Emotion {
   String get label => switch (this) {
-        Emotion.neutral => 'Neutral',
-        Emotion.happy => 'Happy',
-        Emotion.laughing => 'Laughing',
-        Emotion.sad => 'Sad',
-        Emotion.angry => 'Annoyed',
-        Emotion.surprised => 'Surprised',
-        Emotion.thoughtful => 'Thoughtful',
-        Emotion.embarrassed => 'Embarrassed',
-        Emotion.excited => 'Excited',
-        Emotion.worried => 'Worried',
-      };
+    Emotion.neutral => 'Neutral',
+    Emotion.happy => 'Happy',
+    Emotion.laughing => 'Laughing',
+    Emotion.sad => 'Sad',
+    Emotion.angry => 'Annoyed',
+    Emotion.surprised => 'Surprised',
+    Emotion.thoughtful => 'Thoughtful',
+    Emotion.embarrassed => 'Embarrassed',
+    Emotion.excited => 'Excited',
+    Emotion.worried => 'Worried',
+  };
 }
 
 class EmotionCodec {
@@ -128,15 +128,63 @@ class EmotionCodec {
       }
     }
 
-    hit(Emotion.laughing, ['hahaha', 'haha', 'lol', "i'm laughing", 'cracking up'], 3);
-    hit(Emotion.excited, ['yes!', 'let’s go', "let's go", 'so excited', 'amazing!', 'yay'], 2);
-    hit(Emotion.happy, ['glad', 'happy', 'love that', 'wonderful', 'nice!', 'awesome', '😊', '😄']);
-    hit(Emotion.sad, ['sorry', 'sad', "that's hard", 'unfortunate', 'miss ', '😢']);
+    hit(Emotion.laughing, [
+      'hahaha',
+      'haha',
+      'lol',
+      "i'm laughing",
+      'cracking up',
+    ], 3);
+    hit(Emotion.excited, [
+      'yes!',
+      'let’s go',
+      "let's go",
+      'so excited',
+      'amazing!',
+      'yay',
+    ], 2);
+    hit(Emotion.happy, [
+      'glad',
+      'happy',
+      'love that',
+      'wonderful',
+      'nice!',
+      'awesome',
+      '😊',
+      '😄',
+    ]);
+    hit(Emotion.sad, [
+      'sorry',
+      'sad',
+      "that's hard",
+      'unfortunate',
+      'miss ',
+      '😢',
+    ]);
     hit(Emotion.angry, ['annoyed', 'frustrating', 'not okay', 'seriously?']);
-    hit(Emotion.surprised, ['whoa', 'what?!', 'no way', 'wait, what', 'really?!', 'wow']);
+    hit(Emotion.surprised, [
+      'whoa',
+      'what?!',
+      'no way',
+      'wait, what',
+      'really?!',
+      'wow',
+    ]);
     hit(Emotion.embarrassed, ['oops', 'awkward', 'did i say', 'blushing']);
-    hit(Emotion.worried, ['careful', 'worried', 'are you okay', "i'm concerned", 'be safe']);
-    hit(Emotion.thoughtful, ['maybe', 'i wonder', 'let me think', 'hmm', 'on the other hand']);
+    hit(Emotion.worried, [
+      'careful',
+      'worried',
+      'are you okay',
+      "i'm concerned",
+      'be safe',
+    ]);
+    hit(Emotion.thoughtful, [
+      'maybe',
+      'i wonder',
+      'let me think',
+      'hmm',
+      'on the other hand',
+    ]);
     if (scores.isEmpty) return Emotion.neutral;
     final best = scores.entries.reduce((a, b) => a.value >= b.value ? a : b);
     return best.value > 0 ? best.key : Emotion.neutral;

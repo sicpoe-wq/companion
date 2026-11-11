@@ -38,7 +38,9 @@ class ChatBubble extends StatelessWidget {
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.78,
+        ),
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -100,8 +102,10 @@ class _Dots extends StatefulWidget {
 }
 
 class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat();
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..repeat();
 
   @override
   void dispose() {
@@ -121,8 +125,15 @@ class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2.5),
                 child: Opacity(
-                  opacity: 0.35 + 0.65 * (1 - (((_c.value + i / 3) % 1) - 0.5).abs() * 2).clamp(0, 1),
-                  child: const CircleAvatar(radius: 3.5, backgroundColor: AppColors.cream),
+                  opacity:
+                      0.35 +
+                      0.65 *
+                          (1 - (((_c.value + i / 3) % 1) - 0.5).abs() * 2)
+                              .clamp(0, 1),
+                  child: const CircleAvatar(
+                    radius: 3.5,
+                    backgroundColor: AppColors.cream,
+                  ),
                 ),
               ),
           ],
@@ -166,7 +177,10 @@ class Composer extends StatelessWidget {
                 style: const TextStyle(color: AppColors.cream, fontSize: 16),
                 decoration: const InputDecoration(
                   hintText: 'Say something…',
-                  contentPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ),

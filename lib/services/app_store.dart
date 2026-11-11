@@ -51,24 +51,24 @@ class AppState {
   }
 
   static AppState initial() => const AppState(
-        setupDone: false,
-        characterId: 'aria',
-        style: AvatarStyle.cartoon,
-        scenarioId: 'hangout',
-        ttsEnabled: false,
-        memorySummary: '',
-        messages: [],
-      );
+    setupDone: false,
+    characterId: 'aria',
+    style: AvatarStyle.cartoon,
+    scenarioId: 'hangout',
+    ttsEnabled: false,
+    memorySummary: '',
+    messages: [],
+  );
 
   Map<String, dynamic> toJson() => {
-        'setupDone': setupDone,
-        'characterId': characterId,
-        'style': style.name,
-        'scenarioId': scenarioId,
-        'ttsEnabled': ttsEnabled,
-        'memorySummary': memorySummary,
-        'messages': [for (final m in messages) m.toJson()],
-      };
+    'setupDone': setupDone,
+    'characterId': characterId,
+    'style': style.name,
+    'scenarioId': scenarioId,
+    'ttsEnabled': ttsEnabled,
+    'memorySummary': memorySummary,
+    'messages': [for (final m in messages) m.toJson()],
+  };
 
   factory AppState.fromJson(Map<String, dynamic> json) {
     final styleName = (json['style'] ?? 'cartoon').toString();
@@ -184,5 +184,4 @@ class AppStore {
   String summary,
   List<ChatMessage> messages, {
   int keep = AppStore.keepRecent,
-}) =>
-    AppStore.compact(summary, messages, keep: keep);
+}) => AppStore.compact(summary, messages, keep: keep);

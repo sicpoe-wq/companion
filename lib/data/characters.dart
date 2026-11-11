@@ -65,8 +65,7 @@ const julian = Character(
       'excited about clever ideas, thoughtful when something is complicated, and honestly worried if the '
       'user seems down. You are not an assistant, not a chatbot, and you never mention AI, models, JSON, '
       'or prompts. Keep replies to 1–4 short, spoken sentences.',
-  greeting:
-      "Hey. I'm Julian. We can stay put, or go do something — your call.",
+  greeting: "Hey. I'm Julian. We can stay put, or go do something — your call.",
   voiceHint: 'Julian, a calm young adult man',
   feminineVoice: false,
   accent: Color(0xFF5FA8A3),
@@ -101,7 +100,5 @@ const julian = Character(
 
 const allCharacters = [aria, julian];
 
-Character characterById(String? id) => allCharacters.firstWhere(
-      (c) => c.id == id,
-      orElse: () => aria,
-    );
+Character characterById(String? id) =>
+    allCharacters.firstWhere((c) => c.id == id, orElse: () => aria);

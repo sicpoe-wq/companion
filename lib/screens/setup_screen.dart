@@ -10,7 +10,11 @@ import '../widgets/avatar_stage.dart';
 class SetupScreen extends StatefulWidget {
   final ChatController controller;
   final bool switching;
-  const SetupScreen({super.key, required this.controller, this.switching = false});
+  const SetupScreen({
+    super.key,
+    required this.controller,
+    this.switching = false,
+  });
 
   @override
   State<SetupScreen> createState() => _SetupScreenState();
@@ -42,7 +46,10 @@ class _SetupScreenState extends State<SetupScreen> {
                     if (widget.switching)
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.cream),
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: AppColors.cream,
+                        ),
                       )
                     else
                       const SizedBox(width: 12),
@@ -68,46 +75,64 @@ class _SetupScreenState extends State<SetupScreen> {
               ),
               _styleToggle(),
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 350),
-                  child: Column(
-                    key: ValueKey('${character.id}-${_style.name}'),
-                    children: [
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 240,
-                        child: AvatarStage(
-                          character: character,
-                          style: _style,
-                          emotion: Emotion.happy,
-                          talking: false,
-                          ring: character.accent,
-                        ),
+                child: LayoutBuilder(
+                  builder: (context, box) {
+                    // Size the portrait from what is left; drop the bio on
+                    // very short screens rather than squashing the face.
+                    final h = box.maxHeight;
+                    final showBio = h >= 360;
+                    final reserved = showBio ? 200.0 : 96.0;
+                    final side = (h - reserved).clamp(72.0, 240.0);
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 350),
+                      child: Column(
+                        key: ValueKey('${character.id}-${_style.name}'),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox.square(
+                            dimension: side,
+                            child: AvatarStage(
+                              character: character,
+                              style: _style,
+                              emotion: Emotion.happy,
+                              talking: false,
+                              ring: character.accent,
+                            ),
+                          ),
+                          SizedBox(height: showBio ? 14 : 8),
+                          Text(
+                            character.name,
+                            style: TextStyle(
+                              color: AppColors.cream,
+                              fontSize: showBio ? 28 : 22,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${character.age}  ·  ${character.tagline}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: AppColors.creamMuted),
+                          ),
+                          if (showBio)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(28, 10, 28, 0),
+                              child: Text(
+                                character.bio,
+                                textAlign: TextAlign.center,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: AppColors.cream,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        character.name,
-                        style: const TextStyle(
-                          color: AppColors.cream,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${character.age}  ·  ${character.tagline}',
-                        style: const TextStyle(color: AppColors.creamMuted),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(28, 12, 28, 0),
-                        child: Text(
-                          character.bio,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: AppColors.cream, height: 1.4),
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
               Padding(
@@ -133,16 +158,27 @@ class _SetupScreenState extends State<SetupScreen> {
                     borderRadius: BorderRadius.circular(16),
                     onTap: () async {
                       if (widget.switching) {
-                        await widget.controller.switchCharacter(character, style: _style);
+                        await widget.controller.switchCharacter(
+                          character,
+                          style: _style,
+                        );
                         if (context.mounted) Navigator.pop(context);
                       } else {
-                        await widget.controller.completeSetup(character: character, style: _style);
+                        await widget.controller.completeSetup(
+                          character: character,
+                          style: _style,
+                        );
                       }
                     },
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 16,
+                      ),
                       child: Text(
-                        widget.switching ? 'Switch to ${character.name}' : 'Start talking',
+                        widget.switching
+                            ? 'Switch to ${character.name}'
+                            : 'Start talking',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Color(0xFF2A120C),
@@ -180,7 +216,9 @@ class _SetupScreenState extends State<SetupScreen> {
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: _style == s ? AppColors.surfaceLift : Colors.transparent,
+                      color: _style == s
+                          ? AppColors.surfaceLift
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -189,14 +227,19 @@ class _SetupScreenState extends State<SetupScreen> {
                           s.label,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: _style == s ? AppColors.cream : AppColors.creamMuted,
+                            color: _style == s
+                                ? AppColors.cream
+                                : AppColors.creamMuted,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           s == AvatarStyle.cartoon ? 'Animated' : 'Painted',
-                          style: const TextStyle(color: AppColors.creamMuted, fontSize: 11),
+                          style: const TextStyle(
+                            color: AppColors.creamMuted,
+                            fontSize: 11,
+                          ),
                         ),
                       ],
                     ),
@@ -219,7 +262,10 @@ class _SetupScreenState extends State<SetupScreen> {
         decoration: BoxDecoration(
           color: on ? c.accent.withValues(alpha: 0.25) : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: on ? c.accent : AppColors.line, width: on ? 2 : 1),
+          border: Border.all(
+            color: on ? c.accent : AppColors.line,
+            width: on ? 2 : 1,
+          ),
         ),
         child: Column(
           children: [

@@ -49,149 +49,154 @@ class _ScenePainter extends CustomPainter {
     }
   }
 
+  // All scenes are soft, blurred ambient light only — no hard-edged props
+  // that could read as glitches behind the avatar or the app bar.
+  Paint _glow(Color color, double blur) => Paint()
+    ..color = color
+    ..maskFilter = MaskFilter.blur(BlurStyle.normal, blur);
+
+  void _bokeh(
+    Canvas canvas,
+    Size size,
+    Color color,
+    int seed,
+    int count,
+    double maxY,
+  ) {
+    final rnd = math.Random(seed);
+    for (var i = 0; i < count; i++) {
+      final x = rnd.nextDouble() * size.width;
+      final y = rnd.nextDouble() * size.height * maxY;
+      final r = size.width * (0.025 + rnd.nextDouble() * 0.05);
+      canvas.drawCircle(
+        Offset(x, y),
+        r,
+        _glow(color.withValues(alpha: 0.08 + rnd.nextDouble() * 0.10), r * 0.6),
+      );
+    }
+  }
+
+  void _softHorizon(
+    Canvas canvas,
+    Size size,
+    Color color,
+    double y,
+    double amp,
+  ) {
+    final hill = Path()
+      ..moveTo(0, size.height * y)
+      ..quadraticBezierTo(
+        size.width * 0.3,
+        size.height * (y - amp),
+        size.width * 0.6,
+        size.height * y,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.85,
+        size.height * (y + amp * 0.6),
+        size.width,
+        size.height * (y - amp * 0.4),
+      )
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(hill, _glow(color, 18));
+  }
+
   void _home(Canvas canvas, Size size) {
     final c = scenario.colors;
-    // window
-    final win = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.62, size.height * 0.08, size.width * 0.28, size.height * 0.22),
-      const Radius.circular(12),
+    // Warm lamp glow from one side + gentle bokeh.
+    canvas.drawCircle(
+      Offset(size.width * 0.88, size.height * 0.16),
+      size.width * 0.35,
+      _glow(c.sun.withValues(alpha: 0.22), 60),
     );
-    canvas.drawRRect(win, Paint()..color = c.sun.withValues(alpha: 0.35));
-    canvas.drawRRect(
-      win,
-      Paint()
-        ..color = c.accent.withValues(alpha: 0.5)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3,
+    canvas.drawCircle(
+      Offset(size.width * 0.05, size.height * 0.40),
+      size.width * 0.28,
+      _glow(c.accent.withValues(alpha: 0.10), 50),
     );
-    final midX = win.center.dx;
-    final midY = win.center.dy;
-    canvas.drawLine(Offset(midX, win.top), Offset(midX, win.bottom), Paint()..color = c.accent.withValues(alpha: 0.4)..strokeWidth = 2);
-    canvas.drawLine(Offset(win.left, midY), Offset(win.right, midY), Paint()..color = c.accent.withValues(alpha: 0.4)..strokeWidth = 2);
-    // plant
-    final pot = Path()
-      ..moveTo(size.width * 0.12, size.height * 0.36)
-      ..lineTo(size.width * 0.18, size.height * 0.36)
-      ..lineTo(size.width * 0.17, size.height * 0.42)
-      ..lineTo(size.width * 0.13, size.height * 0.42)
-      ..close();
-    canvas.drawPath(pot, Paint()..color = const Color(0xFF8C5340));
-    final leaf = Paint()..color = const Color(0xFF3E7A4C).withValues(alpha: 0.85);
-    canvas.drawOval(Rect.fromCenter(center: Offset(size.width * 0.15, size.height * 0.30), width: 28, height: 46), leaf);
-    canvas.drawOval(Rect.fromCenter(center: Offset(size.width * 0.11, size.height * 0.31), width: 22, height: 36), leaf);
+    _bokeh(canvas, size, c.sun, 7, 9, 0.45);
   }
 
   void _walk(Canvas canvas, Size size) {
     final c = scenario.colors;
-    // sun
-    canvas.drawCircle(Offset(size.width * 0.82, size.height * 0.10), 28, Paint()..color = c.sun);
-    // hills
-    final hill = Path()
-      ..moveTo(0, size.height * 0.36)
-      ..quadraticBezierTo(size.width * 0.25, size.height * 0.22, size.width * 0.5, size.height * 0.34)
-      ..quadraticBezierTo(size.width * 0.75, size.height * 0.44, size.width, size.height * 0.30)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(hill, Paint()..color = c.ground.withValues(alpha: 0.85));
-    // trees
-    final trunk = Paint()..color = const Color(0xFF4A2E1C);
-    final foliage = Paint()..color = const Color(0xFF2E6B3A);
-    for (final x in [0.12, 0.28, 0.78, 0.92]) {
-      final px = size.width * x;
-      canvas.drawRect(Rect.fromCenter(center: Offset(px, size.height * 0.34), width: 8, height: 40), trunk);
-      canvas.drawCircle(Offset(px, size.height * 0.26), 22, foliage);
-    }
-    // path
-    final path = Path()
-      ..moveTo(size.width * 0.35, size.height)
-      ..quadraticBezierTo(size.width * 0.5, size.height * 0.7, size.width * 0.45, size.height * 0.42);
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = const Color(0xFFC9B896).withValues(alpha: 0.5)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 28
-        ..strokeCap = StrokeCap.round,
+    canvas.drawCircle(
+      Offset(size.width * 0.82, size.height * 0.10),
+      size.width * 0.10,
+      _glow(c.sun.withValues(alpha: 0.9), 10),
     );
+    canvas.drawCircle(
+      Offset(size.width * 0.82, size.height * 0.10),
+      size.width * 0.30,
+      _glow(c.sun.withValues(alpha: 0.18), 50),
+    );
+    _softHorizon(canvas, size, c.ground.withValues(alpha: 0.55), 0.38, 0.06);
+    _softHorizon(canvas, size, c.ground.withValues(alpha: 0.75), 0.46, 0.04);
   }
 
   void _cafe(Canvas canvas, Size size) {
     final c = scenario.colors;
-    // hanging lamps
-    for (final x in [0.2, 0.5, 0.8]) {
-      final px = size.width * x;
-      canvas.drawLine(Offset(px, 0), Offset(px, size.height * 0.10), Paint()..color = c.accent..strokeWidth = 2);
-      canvas.drawOval(
-        Rect.fromCenter(center: Offset(px, size.height * 0.13), width: 36, height: 22),
-        Paint()..color = c.sun.withValues(alpha: 0.85),
-      );
+    // Out-of-focus warm lights, like a cafe behind the person.
+    for (final x in [0.12, 0.5, 0.88]) {
       canvas.drawCircle(
-        Offset(px, size.height * 0.16),
-        22,
-        Paint()
-          ..color = c.sun.withValues(alpha: 0.18)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16),
+        Offset(size.width * x, size.height * 0.12),
+        size.width * 0.12,
+        _glow(c.sun.withValues(alpha: 0.22), 30),
       );
     }
-    // window
-    final win = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.08, size.height * 0.18, size.width * 0.28, size.height * 0.18),
-      const Radius.circular(8),
-    );
-    canvas.drawRRect(win, Paint()..color = const Color(0xFF1A2230).withValues(alpha: 0.6));
-    canvas.drawRRect(win, Paint()..color = c.accent.withValues(alpha: 0.5)..style = PaintingStyle.stroke..strokeWidth = 2);
+    _bokeh(canvas, size, c.sun, 11, 12, 0.45);
   }
 
   void _game(Canvas canvas, Size size) {
-    final rnd = math.Random(scenario.id.hashCode);
-    final paint = Paint()..color = scenario.colors.accent.withValues(alpha: 0.18);
-    for (var i = 0; i < 18; i++) {
-      final x = rnd.nextDouble() * size.width;
-      final y = rnd.nextDouble() * size.height * 0.45;
-      canvas.drawCircle(Offset(x, y), 3 + rnd.nextDouble() * 5, paint);
-    }
-    // a couple of cards
-    final card = Paint()..color = Colors.white.withValues(alpha: 0.12);
-    canvas.save();
-    canvas.translate(size.width * 0.15, size.height * 0.16);
-    canvas.rotate(-0.25);
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(0, 0, 40, 56), const Radius.circular(6)), card);
-    canvas.restore();
-    canvas.save();
-    canvas.translate(size.width * 0.78, size.height * 0.12);
-    canvas.rotate(0.3);
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(0, 0, 40, 56), const Radius.circular(6)), card);
-    canvas.restore();
+    final c = scenario.colors;
+    canvas.drawCircle(
+      Offset(size.width * 0.15, size.height * 0.12),
+      size.width * 0.3,
+      _glow(c.accent.withValues(alpha: 0.14), 60),
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.9, size.height * 0.3),
+      size.width * 0.25,
+      _glow(c.sun.withValues(alpha: 0.10), 50),
+    );
+    _bokeh(canvas, size, c.accent, scenario.id.length, 10, 0.45);
   }
 
   void _story(Canvas canvas, Size size) {
     final c = scenario.colors;
-    // moon
-    canvas.drawCircle(Offset(size.width * 0.82, size.height * 0.10), 26, Paint()..color = c.sun);
-    canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.09), 20, Paint()..color = c.top);
-    // stars
+    canvas.drawCircle(
+      Offset(size.width * 0.82, size.height * 0.10),
+      size.width * 0.06,
+      _glow(c.sun.withValues(alpha: 0.85), 4),
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.82, size.height * 0.10),
+      size.width * 0.22,
+      _glow(c.sun.withValues(alpha: 0.12), 40),
+    );
     final rnd = math.Random(3);
-    final star = Paint()..color = Colors.white.withValues(alpha: 0.7);
-    for (var i = 0; i < 24; i++) {
-      canvas.drawCircle(Offset(rnd.nextDouble() * size.width, rnd.nextDouble() * size.height * 0.3), rnd.nextDouble() * 1.8 + 0.6, star);
+    final star = Paint()..color = Colors.white.withValues(alpha: 0.55);
+    for (var i = 0; i < 22; i++) {
+      canvas.drawCircle(
+        Offset(
+          rnd.nextDouble() * size.width,
+          rnd.nextDouble() * size.height * 0.3,
+        ),
+        rnd.nextDouble() * 1.4 + 0.5,
+        star,
+      );
     }
-    // forest silhouette
-    final ground = Path()..moveTo(0, size.height * 0.42);
-    for (var i = 0; i <= 8; i++) {
-      final x = size.width * (i / 8);
-      final peak = size.height * (0.22 + (i.isEven ? 0.04 : 0.10));
-      ground.lineTo(x - size.width * 0.04, size.height * 0.42);
-      ground.lineTo(x, peak);
-      ground.lineTo(x + size.width * 0.04, size.height * 0.42);
-    }
-    ground
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(ground, Paint()..color = const Color(0xFF08061A).withValues(alpha: 0.85));
+    _softHorizon(
+      canvas,
+      size,
+      const Color(0xFF08061A).withValues(alpha: 0.7),
+      0.42,
+      0.05,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _ScenePainter old) => old.scenario.id != scenario.id;
+  bool shouldRepaint(covariant _ScenePainter old) =>
+      old.scenario.id != scenario.id;
 }

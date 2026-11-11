@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -95,7 +96,10 @@ class ChatController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> switchCharacter(Character character, {AvatarStyle? style}) async {
+  Future<void> switchCharacter(
+    Character character, {
+    AvatarStyle? style,
+  }) async {
     await tts.stop();
     final greeting = ChatMessage(
       role: ChatRole.assistant,
@@ -183,7 +187,11 @@ class ChatController extends ChangeNotifier {
     if (text.isEmpty || busy) return;
     error = null;
     retryAfter = null;
-    final user = ChatMessage(role: ChatRole.user, text: text, at: DateTime.now());
+    final user = ChatMessage(
+      role: ChatRole.user,
+      text: text,
+      at: DateTime.now(),
+    );
     state = state.copyWith(messages: [...state.messages, user]);
     busy = true;
     talking = false;
@@ -223,7 +231,9 @@ class ChatController extends ChangeNotifier {
       busy = false;
       talking = false;
       notifyListeners();
-      if (e.rateLimited && e.retryAfter != null && e.retryAfter! <= const Duration(seconds: 8)) {
+      if (e.rateLimited &&
+          e.retryAfter != null &&
+          e.retryAfter! <= const Duration(seconds: 8)) {
         // Very short wait: auto-retry once.
         await Future<void>.delayed(e.retryAfter!);
         if (!busy && error != null) {
@@ -290,7 +300,10 @@ class ChatController extends ChangeNotifier {
       ..writeln('The current activity/scene is "${s.name}": ${s.prompt}')
       ..writeln()
       ..writeln(
-        'Always reply with ONLY a compact JSON object, no markdown, no preamble:',
+        'Output format (strict): reply with exactly ONE JSON object and nothing else — '
+        'no markdown, no code fences, no text before or after, no nested or escaped JSON. '
+        'Use double quotes. The "text" value is plain spoken words only (1-3 short sentences), '
+        'never containing JSON, braces or field names. Example:',
       )
       ..writeln(
         '{"emotion":"<one of: neutral,happy,laughing,sad,angry,surprised,thoughtful,embarrassed,excited,worried>","text":"<your spoken reply>","action":null}',
@@ -315,7 +328,17 @@ class ChatController extends ChangeNotifier {
         case ChatRole.user:
           turns.add(ChatTurn('user', m.text));
         case ChatRole.assistant:
-          turns.add(ChatTurn('assistant', m.text));
+          // Re-encode as the exact format we ask for, so the model keeps it.
+          turns.add(
+            ChatTurn(
+              'assistant',
+              jsonEncode({
+                'emotion': (m.emotion ?? Emotion.neutral).name,
+                'text': m.text,
+                'action': m.action,
+              }),
+            ),
+          );
         case ChatRole.event:
           turns.add(ChatTurn('user', '[Scene change: ${m.text}]'));
       }

@@ -29,7 +29,8 @@ class AvatarStage extends StatefulWidget {
   State<AvatarStage> createState() => _AvatarStageState();
 }
 
-class _AvatarStageState extends State<AvatarStage> with SingleTickerProviderStateMixin {
+class _AvatarStageState extends State<AvatarStage>
+    with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
   Duration _elapsed = Duration.zero;
   FacePose _current = FacePose.forEmotion(Emotion.neutral);
@@ -77,7 +78,8 @@ class _AvatarStageState extends State<AvatarStage> with SingleTickerProviderStat
     _elapsed = elapsed;
 
     if (_blend < 1) {
-      final t = (elapsed - _blendStart).inMilliseconds / _blendFor.inMilliseconds;
+      final t =
+          (elapsed - _blendStart).inMilliseconds / _blendFor.inMilliseconds;
       _blend = t.clamp(0.0, 1.0);
       final curved = Curves.easeInOut.transform(_blend);
       _current = _from.lerp(_to, curved);
@@ -133,12 +135,41 @@ class _AvatarStageState extends State<AvatarStage> with SingleTickerProviderStat
     }
 
     final ring = widget.ring;
+    // Always a true circle: size to the shorter side of whatever box we get,
+    // so the portrait is never stretched into an ellipse.
+    return LayoutBuilder(
+      builder: (context, box) {
+        final side = math.min(
+          box.maxWidth.isFinite ? box.maxWidth : 260.0,
+          box.maxHeight.isFinite ? box.maxHeight : 260.0,
+        );
+        return Center(
+          child: SizedBox.square(
+            dimension: side,
+            child: _framed(pose, breath, sway, talkPhase, ring),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _framed(
+    FacePose pose,
+    double breath,
+    double sway,
+    double talkPhase,
+    Color ring,
+  ) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(color: ring.withValues(alpha: 0.45), blurRadius: 28, spreadRadius: 2),
+          BoxShadow(
+            color: ring.withValues(alpha: 0.45),
+            blurRadius: 28,
+            spreadRadius: 2,
+          ),
         ],
       ),
       child: Container(
@@ -164,9 +195,6 @@ class _AvatarStageState extends State<AvatarStage> with SingleTickerProviderStat
                   emotion: widget.emotion,
                   breath: breath,
                   headSway: sway,
-                  blink: _blink,
-                  talking: widget.talking,
-                  talkPhase: talkPhase,
                 ),
         ),
       ),
@@ -175,14 +203,14 @@ class _AvatarStageState extends State<AvatarStage> with SingleTickerProviderStat
 }
 
 Color emotionRing(Emotion e, Color fallback) => switch (e) {
-      Emotion.happy => const Color(0xFFE8B86D),
-      Emotion.laughing => const Color(0xFFF0C36A),
-      Emotion.excited => const Color(0xFFFF9B6A),
-      Emotion.sad => const Color(0xFF7EA4C8),
-      Emotion.angry => const Color(0xFFE07A5F),
-      Emotion.surprised => const Color(0xFF8ED0E0),
-      Emotion.thoughtful => const Color(0xFFB7A0D9),
-      Emotion.embarrassed => const Color(0xFFE8A0B0),
-      Emotion.worried => const Color(0xFFC4B07A),
-      Emotion.neutral => fallback,
-    };
+  Emotion.happy => const Color(0xFFE8B86D),
+  Emotion.laughing => const Color(0xFFF0C36A),
+  Emotion.excited => const Color(0xFFFF9B6A),
+  Emotion.sad => const Color(0xFF7EA4C8),
+  Emotion.angry => const Color(0xFFE07A5F),
+  Emotion.surprised => const Color(0xFF8ED0E0),
+  Emotion.thoughtful => const Color(0xFFB7A0D9),
+  Emotion.embarrassed => const Color(0xFFE8A0B0),
+  Emotion.worried => const Color(0xFFC4B07A),
+  Emotion.neutral => fallback,
+};

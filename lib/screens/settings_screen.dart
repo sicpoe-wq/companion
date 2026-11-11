@@ -26,7 +26,10 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   SwitchListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                    title: const Text('Semi-realistic portraits', style: TextStyle(color: AppColors.cream)),
+                    title: const Text(
+                      'Semi-realistic portraits',
+                      style: TextStyle(color: AppColors.cream),
+                    ),
                     subtitle: Text(
                       c.style == AvatarStyle.realistic
                           ? 'Painted portraits of ${c.character.name}, with a living blink and breath.'
@@ -35,12 +38,17 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     value: c.style == AvatarStyle.realistic,
                     activeThumbColor: c.character.accent,
-                    onChanged: (on) => c.setStyle(on ? AvatarStyle.realistic : AvatarStyle.cartoon),
+                    onChanged: (on) => c.setStyle(
+                      on ? AvatarStyle.realistic : AvatarStyle.cartoon,
+                    ),
                   ),
                   ListTile(
                     title: Text(
                       'Current style: ${c.style.label}',
-                      style: const TextStyle(color: AppColors.creamMuted, fontSize: 13),
+                      style: const TextStyle(
+                        color: AppColors.creamMuted,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
@@ -50,7 +58,10 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   SwitchListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                    title: const Text('Speak replies out loud', style: TextStyle(color: AppColors.cream)),
+                    title: const Text(
+                      'Speak replies out loud',
+                      style: TextStyle(color: AppColors.cream),
+                    ),
                     subtitle: const Text(
                       'Uses your phone’s built-in text-to-speech. Free, no account.',
                       style: TextStyle(color: AppColors.creamMuted),
@@ -65,20 +76,36 @@ class SettingsScreen extends StatelessWidget {
               _card(
                 children: [
                   ListTile(
-                    title: Text(c.character.name, style: const TextStyle(color: AppColors.cream, fontWeight: FontWeight.w600)),
-                    subtitle: Text(c.character.tagline, style: const TextStyle(color: AppColors.creamMuted)),
-                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.creamMuted),
+                    title: Text(
+                      c.character.name,
+                      style: const TextStyle(
+                        color: AppColors.cream,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      c.character.tagline,
+                      style: const TextStyle(color: AppColors.creamMuted),
+                    ),
+                    trailing: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.creamMuted,
+                    ),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => SetupScreen(controller: c, switching: true),
+                          builder: (_) =>
+                              SetupScreen(controller: c, switching: true),
                         ),
                       );
                     },
                   ),
                   const Divider(color: AppColors.line, height: 1),
                   ListTile(
-                    title: const Text('New conversation', style: TextStyle(color: AppColors.cream)),
+                    title: const Text(
+                      'New conversation',
+                      style: TextStyle(color: AppColors.cream),
+                    ),
                     subtitle: const Text(
                       'Keeps this companion, clears the chat and memory.',
                       style: TextStyle(color: AppColors.creamMuted),
@@ -88,15 +115,24 @@ class SettingsScreen extends StatelessWidget {
                         context: context,
                         builder: (ctx) => AlertDialog(
                           backgroundColor: AppColors.surface,
-                          title: const Text('Start over?', style: TextStyle(color: AppColors.cream)),
+                          title: const Text(
+                            'Start over?',
+                            style: TextStyle(color: AppColors.cream),
+                          ),
                           content: const Text(
                             'This clears the conversation and memory, but keeps your companion and look.',
                             style: TextStyle(color: AppColors.creamMuted),
                           ),
                           actions: [
-                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Cancel'),
+                            ),
                             FilledButton(
-                              style: FilledButton.styleFrom(backgroundColor: c.character.accent, foregroundColor: const Color(0xFF2A120C)),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: c.character.accent,
+                                foregroundColor: const Color(0xFF2A120C),
+                              ),
                               onPressed: () => Navigator.pop(ctx, true),
                               child: const Text('New conversation'),
                             ),
@@ -115,12 +151,18 @@ class SettingsScreen extends StatelessWidget {
               _card(
                 children: [
                   const ListTile(
-                    title: Text('Companion 1.0', style: TextStyle(color: AppColors.cream)),
+                    title: Text(
+                      'Companion 1.0',
+                      style: TextStyle(color: AppColors.cream),
+                    ),
                     subtitle: Text(
                       'Chat is powered by Pollinations’ free text API (GPT-OSS 20B), with no API key. '
                       'Replies are limited to about one every 30 seconds on the free tier. '
                       'Chat history stays on this phone.',
-                      style: TextStyle(color: AppColors.creamMuted, height: 1.35),
+                      style: TextStyle(
+                        color: AppColors.creamMuted,
+                        height: 1.35,
+                      ),
                     ),
                   ),
                 ],

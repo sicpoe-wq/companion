@@ -51,3 +51,9 @@ key.properties
 
 # Local tool output
 /tool/__pycache__/
+
+# Only the 393x852 screenshot set is committed
+screenshots/360x640/
+screenshots/412x915/
+screenshots/704x1024/
+screenshots/352x512/
