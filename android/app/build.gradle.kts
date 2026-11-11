@@ -36,6 +36,15 @@ android {
         versionName = flutter.versionName
     }
 
+    // Real phones are ARM: drop the x86 copies of the on-device TTS runtime,
+    // and compress native libs so the APK download stays smaller.
+    packaging {
+        jniLibs {
+            excludes += listOf("lib/x86/**", "lib/x86_64/**")
+            useLegacyPackaging = true
+        }
+    }
+
     signingConfigs {
         if (hasReleaseKey) {
             create("release") {

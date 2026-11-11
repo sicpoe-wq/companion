@@ -5,7 +5,9 @@ import '../models/emotion.dart';
 import '../screens/activity_picker.dart';
 import '../screens/settings_screen.dart';
 import '../screens/setup_screen.dart';
+import '../services/app_store.dart';
 import '../services/chat_controller.dart';
+import '../services/voice_catalog.dart';
 import '../theme.dart';
 import '../widgets/avatar_stage.dart';
 import '../widgets/chat_widgets.dart';
@@ -56,6 +58,59 @@ class _ChatScreenState extends State<ChatScreen> {
     if (t.trim().isEmpty || c.busy) return;
     _text.clear();
     await c.send(t);
+  }
+
+  Future<void> _toggleVoice(bool on) async {
+    await c.setTts(on);
+    if (!on || c.state.voiceEngine != VoiceEngine.natural) return;
+    final id = c.voiceIdFor(c.character.id);
+    if (c.tts.isInstalled(id) || !mounted) return;
+    final v = voiceById(id);
+    final download = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(
+          'Give ${c.character.name} a natural voice?',
+          style: const TextStyle(color: AppColors.cream),
+        ),
+        content: Text(
+          'Download ${c.character.name}’s neural voice “${v.label}” (~${v.approxMb} MB, one time). '
+          'It runs on your phone and works offline. Until then, your phone’s built-in voice is used.',
+          style: const TextStyle(color: AppColors.creamMuted, height: 1.35),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Use phone voice'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: c.character.accent),
+            child: const Text(
+              'Download',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (download != true || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      SnackBar(content: Text('Downloading ${c.character.name}’s voice…')),
+    );
+    final ok = await c.downloadVoice(id);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? '${c.character.name}’s natural voice is ready.'
+              : (c.tts.downloadErrors[id] ?? 'Download failed.'),
+        ),
+      ),
+    );
   }
 
   Future<void> _activities() async {
@@ -215,7 +270,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           IconButton(
             tooltip: tts ? 'Voice on' : 'Voice off',
-            onPressed: () => c.setTts(!tts),
+            onPressed: () => _toggleVoice(!tts),
             icon: Icon(
               tts ? Icons.volume_up_rounded : Icons.volume_off_rounded,
               color: tts ? c.character.accent : AppColors.cream,

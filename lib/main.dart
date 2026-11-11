@@ -7,6 +7,7 @@ import 'services/ai_client.dart';
 import 'services/app_store.dart';
 import 'services/chat_controller.dart';
 import 'services/tts_service.dart';
+import 'services/voice_catalog.dart';
 import 'theme.dart';
 
 Future<void> main() async {
@@ -16,8 +17,14 @@ Future<void> main() async {
   final state = store.load();
   final tts = TtsService();
   await tts.init();
+  tts.engine = state.voiceEngine;
   if (state.setupDone) {
-    await tts.configure(state.character);
+    await tts.configure(
+      state.character,
+      voiceId:
+          state.voiceByCharacter[state.characterId] ??
+          defaultVoiceFor(state.characterId),
+    );
   }
   final controller = ChatController(
     ai: AiClient(),

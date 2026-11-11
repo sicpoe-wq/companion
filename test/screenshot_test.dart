@@ -8,6 +8,7 @@ import 'package:companion/models/character.dart';
 import 'package:companion/models/emotion.dart';
 import 'package:companion/models/message.dart';
 import 'package:companion/screens/chat_screen.dart';
+import 'package:companion/screens/settings_screen.dart';
 import 'package:companion/screens/setup_screen.dart';
 import 'package:companion/services/ai_client.dart';
 import 'package:companion/services/app_store.dart';
@@ -293,6 +294,51 @@ void main() {
           ),
         ],
       );
+
+      // Close-up of semi-realistic Aria (neck/collar area) on a large phone.
+      // Settings: voice + erase options (Aria active, Julian has a saved chat).
+      final sc = await tester.runAsync(
+        () => _controller(
+          character: aria,
+          style: AvatarStyle.realistic,
+          emotion: Emotion.happy,
+          messages: [
+            ChatMessage(
+              role: ChatRole.assistant,
+              text: aria.greeting,
+              emotion: Emotion.happy,
+              at: now,
+            ),
+            ChatMessage(role: ChatRole.user, text: 'Hi!', at: now),
+          ],
+        ),
+      );
+      sc!.state = sc.state.copyWith(
+        saved: {
+          'julian': Conversation(
+            messages: [
+              ChatMessage(role: ChatRole.user, text: 'Hey Julian', at: now),
+            ],
+          ),
+        },
+      );
+      await tester.pumpWidget(wrap(SettingsScreen(controller: sc)));
+      await shot('settings_top');
+      await tester.dragUntilVisible(
+        find.text('Erase all chats'),
+        find.byType(ListView),
+        const Offset(0, -250),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      await shot('settings_erase');
+      await tester.ensureVisible(find.text('Erase chat with Aria'));
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.tap(find.text('Erase chat with Aria'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await shot('settings_erase_confirm');
+      await tester.tap(find.text('Cancel'));
+      await tester.pump(const Duration(milliseconds: 400));
     });
   }
 }

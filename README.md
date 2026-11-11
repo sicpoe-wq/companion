@@ -17,8 +17,8 @@ An Android app where you chat with an AI character who **looks like a person** a
 - **Two companions:** Aria (warm, curious, a little teasing) and Julian (calm, witty, a good listener). Each one works in both looks.
 - **Ten expressions:** neutral, happy, laughing, sad, angry/annoyed, surprised, thoughtful, embarrassed, excited, worried. The model tags each reply with an emotion that drives the face.
 - **Do things together:** hang out, go for a walk, cafe, 20 Questions, trivia, or a story adventure. The background changes with the scene, and they can suggest an activity too.
-- **Memory:** the conversation is saved on your phone. Older turns are summarized so the character still remembers what you talked about.
-- **Optional voice:** uses your phone’s built-in text-to-speech (off by default).
+- **Saved chats per companion:** Aria and Julian each keep their own conversation, memory, scene and mood on your phone. Leave, switch companions or restart the phone, and you pick up exactly where you left off. Older turns are summarized so the character still remembers. Settings has *Erase chat with …* and *Erase all chats* (each asks you to confirm).
+- **Natural voices (optional, free):** on-device neural text-to-speech ([Piper](https://github.com/rhasspy/piper) voices run with [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)). Each companion has its own voice (five to pick from each), downloaded once (~20 MB) and then fully offline. Falls back to the best built-in phone voice if a natural voice isn't downloaded. Settings has a voice picker and a *Test voice* button.
 - Works without an API key. If you’re offline or the chat service is busy, you get a clear message and a Retry button.
 
 ## Install
@@ -44,3 +44,5 @@ Base semi-realistic portraits can be generated with `python3 tool/gen_portraits.
 ## Credits
 
 Chat is provided by the free [Pollinations](https://pollinations.ai) text API (GPT-OSS 20B). Portrait images were generated with Pollinations’ Classic image API. Neither requires an API key; both are rate-limited and best-effort.
+
+Third-party licences (sherpa-onnx, espeak-ng, Piper voices) are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

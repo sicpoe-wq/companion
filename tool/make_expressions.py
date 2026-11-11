@@ -77,6 +77,21 @@ def skin_color(rgb: np.ndarray, lm) -> tuple[int, int, int]:
     return tuple(int(v) for v in c)
 
 
+FACE_MASK: np.ndarray | None = None
+
+
+def face_mask(shape, box, lm) -> np.ndarray:
+    """Feathered ellipse over the face only (forehead to chin), so warps never
+    move the neck, collar, hair edges or background."""
+    h, w = shape[:2]
+    x, y, bw, bh = box
+    cx = (lm["reye"][0] + lm["leye"][0]) / 2
+    cy = y + bh * 0.52
+    m = np.zeros((h, w), np.float32)
+    cv2.ellipse(m, (int(cx), int(cy)), (int(bw * 0.46), int(bh * 0.56)), 0, 0, 360, 1.0, -1)
+    return cv2.GaussianBlur(m, (0, 0), bw * 0.06)
+
+
 def inverse_warp(rgb: np.ndarray, movers: list[tuple[float, float, float, float, float]]) -> np.ndarray:
     """movers: (cx, cy, dx, dy, radius) — dest pixel p comes from p - weighted displacement."""
     h, w = rgb.shape[:2]
@@ -94,6 +109,9 @@ def inverse_warp(rgb: np.ndarray, movers: list[tuple[float, float, float, float,
         w_acc += wt
     # normalize overlapping movers, but keep the max influence (don't dilute)
     # Using summed weights already interpolates; that's ok.
+    if FACE_MASK is not None:
+        dx_acc *= FACE_MASK
+        dy_acc *= FACE_MASK
     map_x = (xx - dx_acc).astype(np.float32)
     map_y = (yy - dy_acc).astype(np.float32)
     return cv2.remap(rgb, map_x, map_y, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
@@ -310,10 +328,12 @@ KINDS = [
 
 
 def process(cid: str, src: Path):
+    global FACE_MASK
+    # Bases are pre-cleaned (logo + neck artifacts removed), see tool/base_portraits.
     raw = Image.open(src).convert("RGB")
-    raw = scrub_logo(raw)
     bgr = cv2.cvtColor(np.array(raw), cv2.COLOR_RGB2BGR)
     box, lm = detect(bgr)
+    FACE_MASK = face_mask(bgr.shape, box, lm)
     print(cid, "face", box, "lm", {k: (round(v[0]), round(v[1])) for k, v in lm.items()})
     for kind in KINDS:
         out = apply(raw, lm, kind)
@@ -324,8 +344,8 @@ def process(cid: str, src: Path):
 
 def main():
     jobs = {
-        "aria": Path("/workspace/companion/assets/portraits/aria_neutral.jpg"),
-        "julian": Path("/tmp/companion_portraits/julian_neutral_raw.jpg"),
+        "aria": Path(__file__).parent / "base_portraits" / "aria_base.png",
+        "julian": Path(__file__).parent / "base_portraits" / "julian_base.png",
     }
     if len(sys.argv) > 1:
         jobs = {k: jobs[k] for k in sys.argv[1:] if k in jobs}

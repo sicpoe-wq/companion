@@ -12,6 +12,7 @@ import '../models/scenario.dart';
 import 'ai_client.dart';
 import 'app_store.dart';
 import 'tts_service.dart';
+import 'voice_catalog.dart';
 
 class ChatController extends ChangeNotifier {
   final AiClient ai;
@@ -33,8 +34,9 @@ class ChatController extends ChangeNotifier {
     required this.tts,
     required this.state,
   }) {
-    displayEmotion = _lastEmotion() ?? Emotion.neutral;
+    displayEmotion = state.lastEmotion ?? _lastEmotion() ?? Emotion.neutral;
     tts.enabled = state.ttsEnabled;
+    tts.engine = state.voiceEngine;
   }
 
   Character get character => state.character;
@@ -50,35 +52,122 @@ class ChatController extends ChangeNotifier {
   }
 
   Future<void> _persist() async {
+    state = state.copyWith(lastEmotion: displayEmotion);
     await store.save(state);
+  }
+
+  Conversation _fresh(Character c) => Conversation(
+    scenarioId: 'hangout',
+    messages: [
+      ChatMessage(
+        role: ChatRole.assistant,
+        text: c.greeting,
+        emotion: Emotion.happy,
+        at: DateTime.now(),
+      ),
+    ],
+    lastEmotion: Emotion.happy,
+  );
+
+  void _resetTransient() {
+    error = null;
+    retryAfter = null;
+    pendingSuggestion = null;
+    typingBuffer = '';
+    talking = false;
+  }
+
+  /// Make [character] active, resuming its own saved chat if it has one.
+  Future<void> _activate(Character character, {AvatarStyle? style}) async {
+    await tts.stop();
+    // Store the current mood with the outgoing conversation first.
+    state = state.copyWith(lastEmotion: displayEmotion);
+    state = state.activate(
+      character.id,
+      fresh: () => _fresh(character),
+      style: style,
+    );
+    displayEmotion = state.lastEmotion ?? _lastEmotion() ?? Emotion.happy;
+    _resetTransient();
+    await tts.configure(character, voiceId: voiceIdFor(character.id));
+    await _persist();
+    notifyListeners();
+  }
+
+  String voiceIdFor(String characterId) =>
+      state.voiceByCharacter[characterId] ?? defaultVoiceFor(characterId);
+
+  Future<void> setVoiceEngine(VoiceEngine e) async {
+    state = state.copyWith(voiceEngine: e);
+    tts.engine = e;
+    await tts.stop();
+    await tts.configure(character, voiceId: voiceIdFor(character.id));
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> setVoice(String characterId, String voiceId) async {
+    state = state.copyWith(
+      voiceByCharacter: {...state.voiceByCharacter, characterId: voiceId},
+    );
+    if (characterId == character.id) {
+      await tts.stop();
+      await tts.configure(character, voiceId: voiceId);
+    }
+    await _persist();
+    notifyListeners();
+  }
+
+  static const _samples = {
+    'aria':
+        "Hey, it's me. I'm really glad you came back — want to tell me about your day?",
+    'julian':
+        "Hey. Good to see you again. Grab a seat — what's on your mind today?",
+  };
+
+  Future<void> testVoice() async {
+    await tts.configure(character, voiceId: voiceIdFor(character.id));
+    await tts.say(_samples[character.id] ?? character.greeting, character);
+  }
+
+  Future<bool> downloadVoice(String voiceId) async {
+    final ok = await tts.download(voiceId);
+    if (ok) await tts.configure(character, voiceId: voiceIdFor(character.id));
+    notifyListeners();
+    return ok;
+  }
+
+  /// Erase one character's chat and memory (with the active one reset to a
+  /// fresh greeting).
+  Future<void> eraseChat(String characterId) async {
+    if (characterId == state.characterId) {
+      await tts.stop();
+      final f = _fresh(character);
+      state = state.copyWith(
+        scenarioId: f.scenarioId,
+        memorySummary: '',
+        messages: f.messages,
+        lastEmotion: Emotion.happy,
+      );
+      displayEmotion = Emotion.happy;
+      _resetTransient();
+    } else {
+      state = state.copyWith(saved: Map.of(state.saved)..remove(characterId));
+    }
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> eraseAllChats() async {
+    state = state.copyWith(saved: const {});
+    await eraseChat(state.characterId);
   }
 
   Future<void> completeSetup({
     required Character character,
     required AvatarStyle style,
   }) async {
-    final greeting = ChatMessage(
-      role: ChatRole.assistant,
-      text: character.greeting,
-      emotion: Emotion.happy,
-      at: DateTime.now(),
-    );
-    state = AppState(
-      setupDone: true,
-      characterId: character.id,
-      style: style,
-      scenarioId: 'hangout',
-      ttsEnabled: state.ttsEnabled,
-      memorySummary: '',
-      messages: [greeting],
-    );
-    displayEmotion = Emotion.happy;
-    error = null;
-    pendingSuggestion = null;
-    typingBuffer = '';
-    await tts.configure(character);
-    await _persist();
-    notifyListeners();
+    await _activate(character, style: style);
   }
 
   Future<void> setStyle(AvatarStyle style) async {
@@ -100,51 +189,10 @@ class ChatController extends ChangeNotifier {
     Character character, {
     AvatarStyle? style,
   }) async {
-    await tts.stop();
-    final greeting = ChatMessage(
-      role: ChatRole.assistant,
-      text: character.greeting,
-      emotion: Emotion.happy,
-      at: DateTime.now(),
-    );
-    state = AppState(
-      setupDone: true,
-      characterId: character.id,
-      style: style ?? state.style,
-      scenarioId: 'hangout',
-      ttsEnabled: state.ttsEnabled,
-      memorySummary: '',
-      messages: [greeting],
-    );
-    displayEmotion = Emotion.happy;
-    error = null;
-    pendingSuggestion = null;
-    typingBuffer = '';
-    await tts.configure(character);
-    await _persist();
-    notifyListeners();
+    await _activate(character, style: style);
   }
 
-  Future<void> newConversation() async {
-    await tts.stop();
-    final greeting = ChatMessage(
-      role: ChatRole.assistant,
-      text: character.greeting,
-      emotion: Emotion.happy,
-      at: DateTime.now(),
-    );
-    state = state.copyWith(
-      memorySummary: '',
-      messages: [greeting],
-      scenarioId: 'hangout',
-    );
-    displayEmotion = Emotion.happy;
-    error = null;
-    pendingSuggestion = null;
-    typingBuffer = '';
-    await _persist();
-    notifyListeners();
-  }
+  Future<void> newConversation() => eraseChat(state.characterId);
 
   Future<void> setScenario(Scenario scenario, {bool announce = true}) async {
     if (state.scenarioId == scenario.id && announce == false) return;
@@ -164,7 +212,8 @@ class ChatController extends ChangeNotifier {
       );
       state = state.copyWith(messages: [...state.messages, line, arrival]);
       displayEmotion = Emotion.happy;
-      if (state.ttsEnabled) unawaited(tts.speak(scenario.arrivalLine));
+      if (state.ttsEnabled)
+        unawaited(tts.speak(scenario.arrivalLine, character));
     }
     await _persist();
     notifyListeners();
@@ -193,6 +242,8 @@ class ChatController extends ChangeNotifier {
       at: DateTime.now(),
     );
     state = state.copyWith(messages: [...state.messages, user]);
+    // Save right away so the message survives the app being closed mid-reply.
+    unawaited(_persist());
     busy = true;
     talking = false;
     typingBuffer = '';
@@ -288,7 +339,7 @@ class ChatController extends ChangeNotifier {
     busy = false;
     await _persist();
     notifyListeners();
-    if (state.ttsEnabled) unawaited(tts.speak(full));
+    if (state.ttsEnabled) unawaited(tts.speak(full, character));
   }
 
   List<ChatTurn> _buildMessages() {

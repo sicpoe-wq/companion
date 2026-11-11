@@ -176,7 +176,9 @@ class _SetupScreenState extends State<SetupScreen> {
                         horizontal: 16,
                       ),
                       child: Text(
-                        widget.switching
+                        widget.controller.state.hasHistory(character.id)
+                            ? 'Continue with ${character.name}'
+                            : widget.switching
                             ? 'Switch to ${character.name}'
                             : 'Start talking',
                         textAlign: TextAlign.center,
